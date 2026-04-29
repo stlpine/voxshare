@@ -65,7 +65,7 @@ src/
     dashboard/              ← DashboardScreen, TalkTimeChart, SummaryTable
     ui/                     ← shadcn/ui primitives (badge, button, card, input, scroll-area, table)
 public/
-  coi-serviceworker.js      ← copied from node_modules; don't lint
+  sw.js                  ← unified service worker for PWA + COOP/COEP
   favicon.svg
   icons.svg
   icon-192.png
@@ -95,7 +95,8 @@ public/
 - Workbox: set `maximumFileSizeToCacheInBytes: 15 * 1024 * 1024` — default 2 MB silently drops the ONNX model
 
 ### index.html
-- `<script src="/coi-serviceworker.js">` must be the **first** script tag
+- The inline `<script>` registers `sw.js` and handles cross-origin isolation reloads.
+- It calculates the base path correctly for GitHub Pages deployment.
 
 ### lib/mfcc.ts
 - Frame size 2048, hop 1024, 13 MFCC coefficients
@@ -138,7 +139,7 @@ MicVAD.new({
 - **Meyda global state** — set `bufferSize`, `sampleRate`, and `numberOfMFCCCoefficients` before every `extract()` call
 - **Biome does not type-check** — always run `pnpm typecheck` separately; Biome only covers syntax/style
 - **COEP blocks cross-origin resources** — no cross-origin `<img>`, `<script>`, or fetch without proper `crossorigin` attribute and `Cross-Origin-Resource-Policy` response header
-- **coi-serviceworker causes one reload on first visit** — expected behavior; SW registers then page reloads with isolation active
+- **sw.js causes one reload on first visit** — expected behavior; SW registers then page reloads with isolation active
 - **Speaker threshold tuning** — noisy/echoic rooms may need threshold lowered from 0.75 to 0.65–0.70
 - **iOS PWA: background audio stops when screen locks** — acceptable; device stays visible during meetings
 
