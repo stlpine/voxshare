@@ -18,8 +18,9 @@ Session-based voice tracker: measures how much each participant speaks (time, tu
 | Build | Vite 8.x |
 | Styling | Tailwind CSS 4.x (`@tailwindcss/vite` plugin — no postcss config needed) |
 | Asset copy | `scripts/copy-vad-assets.mjs` (custom script; runs before dev/build) |
-| PWA/SW | `vite-plugin-pwa` (Workbox) |
-| COOP/COEP shim | `coi-serviceworker` |
+| UI components | `shadcn/ui` (Radix UI primitives + `class-variance-authority`) |
+| PWA manifest | `vite-plugin-pwa` (`selfDestroying: true` — manifest only, no Workbox caching) |
+| COOP/COEP + offline cache | custom `public/sw.js` (service worker) |
 | Lint + format | `@biomejs/biome` 2.x |
 | Git hooks | `lefthook` |
 | Package manager | pnpm 10.x (enforced via Corepack) |
@@ -81,7 +82,7 @@ public/
 ## Critical Implementation Rules
 
 ### vite.config.ts
-- Always set COOP/COEP headers on the dev server (coi-serviceworker only kicks in after first SW registration):
+- Always set COOP/COEP headers on the dev server (`sw.js` only kicks in after the first SW registration):
   ```ts
   server: {
     headers: {
@@ -92,7 +93,12 @@ public/
   ```
 - A custom `staticWorkerAssetsPlugin` serves `ort-wasm-simd-threaded.mjs` and `vad.worklet.bundle.min.js` as plain static assets in dev, bypassing Vite's transform pipeline (required for AudioWorklet/WASM worker scripts).
 - VAD/WASM assets are copied from `node_modules` to `public/` by `scripts/copy-vad-assets.mjs` — do not use `vite-plugin-static-copy`.
-- Workbox: set `maximumFileSizeToCacheInBytes: 15 * 1024 * 1024` — default 2 MB silently drops the ONNX model
+- `VitePWA` is configured with `selfDestroying: true` — it generates only the PWA manifest; all caching is handled by `public/sw.js`.
+
+### UI components (`src/components/ui/`)
+- Always use shadcn/ui primitives for generic UI elements (buttons, inputs, cards, badges, tables, scroll areas, etc.)
+- Add new components via `pnpm dlx shadcn@latest add <component>` — this drops the file into `src/components/ui/` with the correct Radix + CVA wiring
+- Do not hand-roll primitives that shadcn already covers
 
 ### index.html
 - The inline `<script>` registers `sw.js` and handles cross-origin isolation reloads.
