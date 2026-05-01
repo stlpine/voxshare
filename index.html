@@ -1,15 +1,54 @@
 <!doctype html>
 <html lang="en" class="dark">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/icon-192.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#6366f1" />
-    <title>VoxShare</title>
-  </head>
-  <body>
-    <script src="/coi-serviceworker.js"></script>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+    <head>
+        <meta charset="UTF-8" />
+        <link rel="icon" type="image/png" href="/icon-192.png" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="theme-color" content="#6366f1" />
+        <title>VoxShare</title>
+    </head>
+    <body>
+        <script>
+            // Register the service worker manually
+            if ("serviceWorker" in navigator) {
+                // Use the correct base path for GitHub Pages
+                const base =
+                    window.location.pathname
+                        .split("/")
+                        .slice(0, -1)
+                        .join("/") || "";
+                const swPath = `${base}/sw.js`.replace(/\/+/g, "/");
+
+                navigator.serviceWorker
+                    .register(swPath)
+                    .then((registration) => {
+                        console.log(
+                            "Service Worker registered with scope:",
+                            registration.scope,
+                        );
+
+                        // If we're not cross-origin isolated, we need the service worker to take over.
+                        // After it takes control, we reload the page once.
+                        if (!window.crossOriginIsolated) {
+                            navigator.serviceWorker.addEventListener(
+                                "controllerchange",
+                                () => {
+                                    window.location.reload();
+                                },
+                            );
+
+                            // If already active but not controlling (e.g. after refresh), reload
+                            if (
+                                registration.active &&
+                                !navigator.serviceWorker.controller
+                            ) {
+                                window.location.reload();
+                            }
+                        }
+                    });
+            }
+        </script>
+        <div id="root"></div>
+        <script type="module" src="/src/main.tsx"></script>
+    </body>
 </html>

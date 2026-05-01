@@ -12,7 +12,6 @@
       "!dist",
       "!node_modules",
       "!.pnpm-store",
-      "!public/coi-serviceworker.js",
       "!public/vad.worklet.bundle.min.js",
       "!public/ort-wasm-simd-threaded.mjs",
       "!src/index.css"
