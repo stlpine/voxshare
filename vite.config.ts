@@ -44,9 +44,7 @@ export default defineConfig({
     react(),
     tailwindcss(),
     VitePWA({
-      injectRegister: false,
-      strategies: "generateSW", // Default
-      selfDestroying: true, // This effectively disables the PWA SW if one was there
+      registerType: "autoUpdate",
       manifest: {
         name: "VoxShare",
         short_name: "VoxShare",
@@ -56,6 +54,28 @@ export default defineConfig({
         icons: [
           { src: "icon-192.png", sizes: "192x192", type: "image/png" },
           { src: "icon-512.png", sizes: "512x512", type: "image/png" },
+        ],
+      },
+      workbox: {
+        globPatterns: ["**/*.{js,css,html,ico,png,onnx,wasm,mjs}"],
+        maximumFileSizeToCacheInBytes: 15 * 1024 * 1024,
+        runtimeCaching: [
+          {
+            urlPattern: /\.wasm$/,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "wasm-cache",
+              expiration: { maxAgeSeconds: 60 * 60 * 24 * 30 },
+            },
+          },
+          {
+            urlPattern: /\.onnx$/,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "onnx-cache",
+              expiration: { maxAgeSeconds: 60 * 60 * 24 * 30 },
+            },
+          },
         ],
       },
     }),

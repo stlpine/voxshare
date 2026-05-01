@@ -4,12 +4,9 @@ export async function createVAD(
   onSpeechStart: () => void,
   onSpeechEnd: (audio: Float32Array) => void,
 ): Promise<MicVAD> {
-  const assetBase = import.meta.env.BASE_URL.endsWith("/")
-    ? import.meta.env.BASE_URL
-    : `${import.meta.env.BASE_URL}/`;
   return MicVAD.new({
-    baseAssetPath: assetBase,
-    onnxWASMBasePath: assetBase,
+    baseAssetPath: "/",
+    onnxWASMBasePath: "/",
     model: "legacy",
     minSpeechMs: 300,
     preSpeechPadMs: 200,
