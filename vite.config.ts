@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig, type Plugin } from "vite";
+import { VitePWA } from "vite-plugin-pwa";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -38,7 +39,26 @@ function staticWorkerAssetsPlugin(): Plugin {
 }
 
 export default defineConfig({
-  plugins: [staticWorkerAssetsPlugin(), react(), tailwindcss()],
+  plugins: [
+    staticWorkerAssetsPlugin(),
+    react(),
+    tailwindcss(),
+    VitePWA({
+      // We register the SW ourselves in index.html; manifest is in public/manifest.webmanifest.
+      injectRegister: null,
+      manifest: false,
+      // injectManifest reads src/sw.js, replaces self.__WB_MANIFEST with the
+      // current deployment's asset list, and writes the result to dist/sw.js.
+      // Source lives in src/ (not public/) so Vite's publicDir copy never races
+      // with VitePWA's closeBundle write.
+      strategies: "injectManifest",
+      srcDir: "src",
+      filename: "sw.js",
+      injectManifest: {
+        globPatterns: ["**/*.{js,mjs,css,html,svg,png,ico,webmanifest,wasm,onnx,woff2}"],
+      },
+    }),
+  ],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
