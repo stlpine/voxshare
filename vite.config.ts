@@ -4,7 +4,6 @@ import { fileURLToPath } from "node:url";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig, type Plugin } from "vite";
-import { VitePWA } from "vite-plugin-pwa";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -39,27 +38,7 @@ function staticWorkerAssetsPlugin(): Plugin {
 }
 
 export default defineConfig({
-  plugins: [
-    staticWorkerAssetsPlugin(),
-    react(),
-    tailwindcss(),
-    VitePWA({
-      injectRegister: false,
-      strategies: "generateSW", // Default
-      selfDestroying: true, // This effectively disables the PWA SW if one was there
-      manifest: {
-        name: "VoxShare",
-        short_name: "VoxShare",
-        display: "standalone",
-        background_color: "#0f172a",
-        theme_color: "#6366f1",
-        icons: [
-          { src: "icon-192.png", sizes: "192x192", type: "image/png" },
-          { src: "icon-512.png", sizes: "512x512", type: "image/png" },
-        ],
-      },
-    }),
-  ],
+  plugins: [staticWorkerAssetsPlugin(), react(), tailwindcss()],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
