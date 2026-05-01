@@ -37,13 +37,15 @@ export default function EnrollmentCard({ participant, onDone }: Props) {
   const [round, setRound] = useState(0);
   const [collectedProfiles, setCollectedProfiles] = useState<number[][]>([]);
   const [phrases] = useState(() => pickPhrases(NUM_SAMPLES));
+  const [isSpeaking, setIsSpeaking] = useState(false);
   const setMfccProfile = useSessionStore((s) => s.setMfccProfile);
   const advanceEnrollment = useSessionStore((s) => s.advanceEnrollment);
 
   async function handleRecord() {
     setState("recording");
+    setIsSpeaking(false);
     try {
-      const pcm = await recordEnrollmentAudio();
+      const pcm = await recordEnrollmentAudio(setIsSpeaking);
       setState("processing");
       const profile = extractMFCCProfile(pcm, 16000);
       const updated = [...collectedProfiles, profile];
@@ -65,6 +67,8 @@ export default function EnrollmentCard({ participant, onDone }: Props) {
       }
     } catch {
       setState("error");
+    } finally {
+      setIsSpeaking(false);
     }
   }
 
@@ -86,8 +90,18 @@ export default function EnrollmentCard({ participant, onDone }: Props) {
         )}
 
         {state === "recording" && (
-          <div className="flex justify-center">
+          <div className="flex flex-col items-center gap-3">
             <CountdownRing durationMs={5000} />
+            <div className="flex items-center gap-2">
+              <span
+                className={`h-2 w-2 rounded-full transition-colors duration-100 ${
+                  isSpeaking ? "bg-green-400 animate-pulse" : "bg-muted-foreground/40"
+                }`}
+              />
+              <span className="text-xs text-muted-foreground">
+                {isSpeaking ? "Speaking" : "Listening…"}
+              </span>
+            </div>
           </div>
         )}
 

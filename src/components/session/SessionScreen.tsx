@@ -19,6 +19,7 @@ function fmtElapsed(ms: number): string {
 export default function SessionScreen() {
   const participants = useSessionStore((s) => s.participants);
   const currentSpeakerId = useSessionStore((s) => s.currentSpeakerId);
+  const pendingTurnStart = useSessionStore((s) => s.pendingTurnStart);
   const sessionStartTime = useSessionStore((s) => s.sessionStartTime);
   const endSession = useSessionStore((s) => s.endSession);
 
@@ -34,7 +35,8 @@ export default function SessionScreen() {
     return () => clearInterval(id);
   }, [sessionStartTime]);
 
-  const currentSpeaker = participants.find((p) => p.id === currentSpeakerId) ?? null;
+  const isSpeaking = pendingTurnStart !== null;
+  const lastSpeaker = participants.find((p) => p.id === currentSpeakerId) ?? null;
   const reenrollingParticipant = participants.find((p) => p.id === reenrollingId) ?? null;
 
   return (
@@ -49,7 +51,7 @@ export default function SessionScreen() {
         </Button>
       </div>
       <WaveformCanvas />
-      <SpeakerIndicator speaker={currentSpeaker} />
+      <SpeakerIndicator isSpeaking={isSpeaking} lastSpeaker={lastSpeaker} />
       <LiveMetricsTable onReenroll={(id) => setReenrollingId(id)} />
       <TurnLog />
 
