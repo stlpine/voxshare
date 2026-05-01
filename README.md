@@ -28,8 +28,8 @@ Speaker identification uses [Silero VAD](https://github.com/snakers4/silero-vad)
 | Frontend | React 19 + TypeScript 6 |
 | Build | Vite 8 |
 | Styling | Tailwind CSS 4 |
-| PWA manifest | `vite-plugin-pwa` |
-| COOP/COEP + offline cache | custom `public/sw.js` (service worker) |
+| PWA / offline | `vite-plugin-pwa` (Workbox) |
+| COOP/COEP shim | `coi-serviceworker` |
 
 ---
 
@@ -45,7 +45,7 @@ pnpm dev
 
 Open `http://localhost:5173`. On first load the service worker registers and the page reloads once — this is expected.
 
-> **Note:** The app requires `SharedArrayBuffer` (for ONNX threaded WASM). The dev server sets the required COOP/COEP headers automatically. On production, the custom `sw.js` service worker injects `Cross-Origin-Opener-Policy` and `Cross-Origin-Embedder-Policy` headers on every response to maintain cross-origin isolation.
+> **Note:** The app requires `SharedArrayBuffer` (for ONNX threaded WASM). The dev server sets the required COOP/COEP headers automatically. On production, `coi-serviceworker` handles this via a service worker shim.
 
 ---
 
@@ -73,10 +73,10 @@ The included GitHub Actions workflow (`.github/workflows/deploy.yml`) deploys to
 
 The workflow automatically sets the correct base path from the repository name. If you use a custom domain, change `--base=/${{ github.event.repository.name }}/` to `--base=/` in the workflow file.
 
-The app also works on Netlify, Vercel, and Cloudflare Pages — just run `pnpm build` and serve the `dist/` folder. The custom `sw.js` handles COOP/COEP headers automatically on those platforms too, so no server-side header configuration is needed.
+The app also works on Netlify, Vercel, and Cloudflare Pages — just run `pnpm build` and serve the `dist/` folder. On those platforms you'll need to configure COOP/COEP response headers manually (or rely on `coi-serviceworker` which is already included).
 
 ---
 
 ## Privacy
 
-All audio processing happens locally in the browser. No audio data, voice profiles, or session metrics are transmitted anywhere. The ONNX model and WASM binaries are cached by the service worker (`sw.js`) for offline use after the first load.
+All audio processing happens locally in the browser. No audio data, voice profiles, or session metrics are transmitted anywhere. The ONNX model and WASM binaries are cached by the service worker for fully offline use after the first load.

@@ -18,9 +18,8 @@ Session-based voice tracker: measures how much each participant speaks (time, tu
 | Build | Vite 8.x |
 | Styling | Tailwind CSS 4.x (`@tailwindcss/vite` plugin — no postcss config needed) |
 | Asset copy | `scripts/copy-vad-assets.mjs` (custom script; runs before dev/build) |
-| UI components | `shadcn/ui` (Radix UI primitives + `class-variance-authority`) |
-| PWA manifest | `vite-plugin-pwa` (`selfDestroying: true` — manifest only, no Workbox caching) |
-| COOP/COEP + offline cache | custom `public/sw.js` (service worker) |
+| PWA/SW | `vite-plugin-pwa` (Workbox) |
+| COOP/COEP shim | `coi-serviceworker` |
 | Lint + format | `@biomejs/biome` 2.x |
 | Git hooks | `lefthook` |
 | Package manager | pnpm 10.x (enforced via Corepack) |
@@ -66,7 +65,7 @@ src/
     dashboard/              ← DashboardScreen, TalkTimeChart, SummaryTable
     ui/                     ← shadcn/ui primitives (badge, button, card, input, scroll-area, table)
 public/
-  sw.js                  ← unified service worker for PWA + COOP/COEP
+  coi-serviceworker.js      ← copied from node_modules; don't lint
   favicon.svg
   icons.svg
   icon-192.png
@@ -82,7 +81,7 @@ public/
 ## Critical Implementation Rules
 
 ### vite.config.ts
-- Always set COOP/COEP headers on the dev server (`sw.js` only kicks in after the first SW registration):
+- Always set COOP/COEP headers on the dev server (coi-serviceworker only kicks in after first SW registration):
   ```ts
   server: {
     headers: {
@@ -93,16 +92,10 @@ public/
   ```
 - A custom `staticWorkerAssetsPlugin` serves `ort-wasm-simd-threaded.mjs` and `vad.worklet.bundle.min.js` as plain static assets in dev, bypassing Vite's transform pipeline (required for AudioWorklet/WASM worker scripts).
 - VAD/WASM assets are copied from `node_modules` to `public/` by `scripts/copy-vad-assets.mjs` — do not use `vite-plugin-static-copy`.
-- `VitePWA` is configured with `selfDestroying: true` — it generates only the PWA manifest; all caching is handled by `public/sw.js`.
-
-### UI components (`src/components/ui/`)
-- Always use shadcn/ui primitives for generic UI elements (buttons, inputs, cards, badges, tables, scroll areas, etc.)
-- Add new components via `pnpm dlx shadcn@latest add <component>` — this drops the file into `src/components/ui/` with the correct Radix + CVA wiring
-- Do not hand-roll primitives that shadcn already covers
+- Workbox: set `maximumFileSizeToCacheInBytes: 15 * 1024 * 1024` — default 2 MB silently drops the ONNX model
 
 ### index.html
-- The inline `<script>` registers `sw.js` and handles cross-origin isolation reloads.
-- It calculates the base path correctly for GitHub Pages deployment.
+- `<script src="/coi-serviceworker.js">` must be the **first** script tag
 
 ### lib/mfcc.ts
 - Frame size 2048, hop 1024, 13 MFCC coefficients
@@ -145,7 +138,7 @@ MicVAD.new({
 - **Meyda global state** — set `bufferSize`, `sampleRate`, and `numberOfMFCCCoefficients` before every `extract()` call
 - **Biome does not type-check** — always run `pnpm typecheck` separately; Biome only covers syntax/style
 - **COEP blocks cross-origin resources** — no cross-origin `<img>`, `<script>`, or fetch without proper `crossorigin` attribute and `Cross-Origin-Resource-Policy` response header
-- **sw.js causes one reload on first visit** — expected behavior; SW registers then page reloads with isolation active
+- **coi-serviceworker causes one reload on first visit** — expected behavior; SW registers then page reloads with isolation active
 - **Speaker threshold tuning** — noisy/echoic rooms may need threshold lowered from 0.75 to 0.65–0.70
 - **iOS PWA: background audio stops when screen locks** — acceptable; device stays visible during meetings
 
