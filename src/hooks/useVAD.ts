@@ -11,12 +11,14 @@ export function useVAD() {
   const recordSpeechStart = useSessionStore((s) => s.recordSpeechStart);
   const recordTurn = useSessionStore((s) => s.recordTurn);
   const recordUnknownTurn = useSessionStore((s) => s.recordUnknownTurn);
+  const isEnrolling = useSessionStore((s) => s.isEnrolling);
 
   // Keep refs so VAD callbacks always see fresh values without needing re-init
   const participantsRef = useRef<Participant[]>(participants);
   const recordSpeechStartRef = useRef(recordSpeechStart);
   const recordTurnRef = useRef(recordTurn);
   const recordUnknownTurnRef = useRef(recordUnknownTurn);
+  const isEnrollingRef = useRef(isEnrolling);
 
   useEffect(() => {
     participantsRef.current = participants;
@@ -35,6 +37,10 @@ export function useVAD() {
   }, [recordUnknownTurn]);
 
   useEffect(() => {
+    isEnrollingRef.current = isEnrolling;
+  }, [isEnrolling]);
+
+  useEffect(() => {
     let destroyed = false;
 
     async function init() {
@@ -43,6 +49,7 @@ export function useVAD() {
           recordSpeechStartRef.current(null);
         },
         (audio: Float32Array) => {
+          if (isEnrollingRef.current) return;
           const durationMs = Math.round((audio.length / 16000) * 1000);
           const speakerId = identifySpeaker(audio, 16000, participantsRef.current);
           if (speakerId) {

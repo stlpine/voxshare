@@ -10,6 +10,7 @@ interface SessionState {
   pendingTurnStart: number | null;
   sessionStartTime: number | null;
   sessionEndTime: number | null;
+  isEnrolling: boolean;
 }
 
 interface SessionActions {
@@ -17,6 +18,8 @@ interface SessionActions {
   setParticipants: (names: string[]) => void;
   setMfccProfile: (id: string, profile: number[]) => void;
   advanceEnrollment: () => void;
+  addParticipant: (id: string, name: string) => void;
+  setIsEnrolling: (value: boolean) => void;
   recordSpeechStart: (speakerId: string | null) => void;
   recordTurn: (speakerId: string, durationMs: number) => void;
   recordUnknownTurn: (durationMs: number) => void;
@@ -35,6 +38,7 @@ export const useSessionStore = create<Store>((set) => ({
   pendingTurnStart: null,
   sessionStartTime: null,
   sessionEndTime: null,
+  isEnrolling: false,
 
   setPhase: (phase) => set({ phase }),
 
@@ -57,6 +61,13 @@ export const useSessionStore = create<Store>((set) => ({
       }
       return { enrollmentIndex: next };
     }),
+
+  addParticipant: (id, name) =>
+    set((s) => ({
+      participants: [...s.participants, { id, name, mfccProfile: null }],
+    })),
+
+  setIsEnrolling: (value) => set({ isEnrolling: value }),
 
   recordSpeechStart: (_speakerId) => set({ pendingTurnStart: Date.now(), currentSpeakerId: null }),
 
@@ -108,5 +119,6 @@ export const useSessionStore = create<Store>((set) => ({
       pendingTurnStart: null,
       sessionStartTime: null,
       sessionEndTime: null,
+      isEnrolling: false,
     }),
 }));
