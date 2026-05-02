@@ -14,7 +14,10 @@
       "!.pnpm-store",
       "!public/vad.worklet.bundle.min.js",
       "!public/ort-wasm-simd-threaded.mjs",
-      "!src/index.css"
+      "!src/index.css",
+      "!e2e",
+      "!playwright-report",
+      "!test-results"
     ]
   },
   "formatter": {
