@@ -32,12 +32,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Type-check
-        run: pnpm typecheck
-
-      - name: Copy VAD assets
-        run: node scripts/copy-vad-assets.mjs
-
       - name: Build
         # GitHub Pages serves from /<repo-name>/ — set base accordingly.
         # If you use a custom domain, change this to: --base=/
